@@ -6,13 +6,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
@@ -40,7 +45,12 @@ public class FXMLDocumentController implements Initializable {
     private ImageView imageView;
 
     private boolean running;
-    private Thread t;
+
+    private ScheduledExecutorService executor;
+
+    int delay;
+    @FXML
+    private Label fileNameField;
 
     private void handleBtnLoadAction(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
@@ -56,6 +66,7 @@ public class FXMLDocumentController implements Initializable {
             });
             displayImage();
         }
+
     }
 
     private void handleBtnPreviousAction(ActionEvent event) {
@@ -63,13 +74,16 @@ public class FXMLDocumentController implements Initializable {
             currentImageIndex
                     = (currentImageIndex - 1 + images.size()) % images.size();
             displayImage();
+            updateFileName();
         }
     }
 
     private void handleBtnNextAction(ActionEvent event) {
+
         if (!images.isEmpty()) {
             currentImageIndex = (currentImageIndex + 1) % images.size();
             displayImage();
+            updateFileName();
         }
     }
 
@@ -81,8 +95,7 @@ public class FXMLDocumentController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        running = false;
-
+        running=false;
         btnLoad.setOnAction((ActionEvent event)
                 -> {
             handleBtnLoadAction(event);
@@ -108,37 +121,51 @@ public class FXMLDocumentController implements Initializable {
                 images.add(new Image(f.toURI().toString()));
             });
             displayImage();
+            setFileName(images.get(currentImageIndex).impl_getUrl());
         }
+
     }
 
     @FXML
     private void startSlideshow(ActionEvent event) {
-        running = true;
-
-      
-            t = new Thread(() -> {
-                while (running) {
-                    try {
-                        Thread.sleep(2000);
-                        btnNext.fire();
-                        System.out.println("Next image shown");
-
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-
-                }
-                System.out.println("Thread working still");
-            }
-            );
-            t.start();
-        
-
+        start();
     }
 
     @FXML
     private void stopSlideshow(ActionEvent event) {
-        running = false;
+        stop();
+    }
+
+    public void start() {
+        if(!running){
+        Runnable thread = new Runnable() {
+            @Override
+            public void run() {
+                btnNext.fire();
+            }
+        };
+        delay = 1;
+        executor = Executors.newScheduledThreadPool(1);
+        executor.scheduleAtFixedRate(thread, delay, delay, TimeUnit.SECONDS);
+        running=true;
+        }
+    }
+
+    public void updateFileName() {
+        Platform.runLater(() -> {
+            setFileName(images.get(currentImageIndex).impl_getUrl());
+        });
+    }
+
+    public void setFileName(String fName) {
+        fileNameField.setText("File name: " + fName.substring(fName.lastIndexOf("/") + 1, fName.length()));
+    }
+
+    public void stop() {
+        running=false;
+        if (executor != null && !executor.isShutdown()) {
+            executor.shutdown();
+        }
     }
 
 }
