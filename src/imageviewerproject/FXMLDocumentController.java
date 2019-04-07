@@ -3,6 +3,7 @@ package imageviewerproject;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
@@ -98,6 +99,19 @@ public class FXMLDocumentController implements Initializable
         {
             handleBtnNextAction(event);
         });
+        
+        File folder = new File("src\\imageviewerproject\\gui\\images");
+        
+        List<File> files = Arrays.asList(folder.listFiles());
+                
+        if (!files.isEmpty())
+        {
+            files.forEach((File f) ->
+            {
+                images.add(new Image(f.toURI().toString()));
+            });
+            displayImage();
+        }
     }
 
 }
