@@ -124,6 +124,7 @@ public class FXMLDocumentController implements Initializable {
             setFileName(images.get(currentImageIndex).impl_getUrl());
         }
 
+        
     }
 
     @FXML
@@ -167,5 +168,4 @@ public class FXMLDocumentController implements Initializable {
             executor.shutdown();
         }
     }
-
 }

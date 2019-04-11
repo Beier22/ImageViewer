@@ -1,6 +1,7 @@
 package imageviewerproject;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -18,6 +19,10 @@ public class ImageViewer extends Application
         
         stage.setScene(scene);
         stage.setTitle("Image Viewer");
+        stage.setOnCloseRequest((event) -> {
+            Platform.exit();
+            System.exit(0);
+        });
         stage.show();
     }
 
