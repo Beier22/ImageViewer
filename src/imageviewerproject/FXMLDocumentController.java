@@ -65,6 +65,7 @@ public class FXMLDocumentController implements Initializable {
                 images.add(new Image(f.toURI().toString()));
             });
             displayImage();
+            setFileName(images.get(currentImageIndex).impl_getUrl());
         }
 
     }
@@ -95,7 +96,8 @@ public class FXMLDocumentController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        running=false;
+
+        running = false;
         btnLoad.setOnAction((ActionEvent event)
                 -> {
             handleBtnLoadAction(event);
@@ -111,20 +113,6 @@ public class FXMLDocumentController implements Initializable {
             handleBtnNextAction(event);
         });
 
-        File folder = new File("src\\imageviewerproject\\gui\\images");
-
-        List<File> files = Arrays.asList(folder.listFiles());
-
-        if (!files.isEmpty()) {
-            files.forEach((File f)
-                    -> {
-                images.add(new Image(f.toURI().toString()));
-            });
-            displayImage();
-            setFileName(images.get(currentImageIndex).impl_getUrl());
-        }
-
-        
     }
 
     @FXML
@@ -137,19 +125,17 @@ public class FXMLDocumentController implements Initializable {
         stop();
     }
 
-    public void start() {
-        if(!running){
-        Runnable thread = new Runnable() {
-            @Override
-            public void run() {
-                btnNext.fire();
-            }
+    public synchronized void start() {
+         if(!running){
+        Runnable thread = () -> {
+        btnNext.fire();
         };
-        delay = 1;
+        delay = 2;
         executor = Executors.newScheduledThreadPool(1);
         executor.scheduleAtFixedRate(thread, delay, delay, TimeUnit.SECONDS);
-        running=true;
-        }
+
+          running=true;
+          }
     }
 
     public void updateFileName() {
@@ -163,9 +149,10 @@ public class FXMLDocumentController implements Initializable {
     }
 
     public void stop() {
-        running=false;
+              running=false;
         if (executor != null && !executor.isShutdown()) {
             executor.shutdown();
         }
     }
+
 }
